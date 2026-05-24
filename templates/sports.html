@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}Sports - Sports Society{% endblock %}
+{% block content %}
+<div class="section-header">
+    <div class="page-header">
+        <h1>Sports Management</h1>
+        <p>Add, view, and manage all sports in your society</p>
+    </div>
+    {% if is_admin %}
+    <a href="{{ url_for('add_sport') }}" class="btn btn-primary" id="add-sport-btn">+ Add New Sport</a>
+    {% endif %}
+</div>
+
+<div class="sports-grid">
+    {% for sport in sports %}
+    <div class="sport-card fade-in stagger-{{ loop.index }}">
+        <span class="sport-icon">{{ sport.icon }}</span>
+        <div class="sport-name">{{ sport.name }}</div>
+        <div class="sport-info">
+            <span>👥 {{ sport_stats[sport.id].teams }} Teams</span>
+            <span>🧑 {{ sport_stats[sport.id].players }} Players</span>
+        </div>
+        <div class="max-badge">Max {{ sport.max_players }} per team</div>
+        {% if sport.description %}
+        <div class="sport-desc">{{ sport.description }}</div>
+        {% endif %}
+        {% if is_admin %}
+        <div class="sport-actions">
+            <form method="POST" action="{{ url_for('delete_sport', id=sport.id) }}"
+                  onsubmit="return confirm('Delete {{ sport.name }} and all its teams/players?');" style="margin:0;">
+                <button type="submit" class="btn btn-danger btn-sm">🗑 Delete</button>
+            </form>
+        </div>
+        {% endif %}
+        <style>.sport-card:nth-child({{ loop.index }})::after { background: {{ sport.color }}; }</style>
+    </div>
+    {% endfor %}
+</div>
+
+{% if not sports %}
+<div class="empty-state">
+    <span class="empty-icon">🏅</span>
+    No sports added yet.{% if is_admin %} Click "Add New Sport" to get started!{% endif %}
+</div>
+{% endif %}
+{% endblock %}

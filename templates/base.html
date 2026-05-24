@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sports Society Management System - Manage teams, players, and payments">
+    <title>{% block title %}Sports Society{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .role-badge-user {
+            background: rgba(34,197,94,0.15);
+            color: #4ade80;
+            border: 1px solid rgba(34,197,94,0.3);
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .role-badge-admin {
+            background: rgba(59,130,246,0.15);
+            color: #60a5fa;
+            border: 1px solid rgba(59,130,246,0.3);
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .view-only-banner {
+            background: linear-gradient(90deg, rgba(34,197,94,0.12), rgba(34,197,94,0.06));
+            border-bottom: 1px solid rgba(34,197,94,0.2);
+            color: #4ade80;
+            text-align: center;
+            padding: 6px 16px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+        }
+        .view-only-banner span { opacity: 0.7; margin: 0 6px; }
+    </style>
+</head>
+<body>
+    {% if request.endpoint not in ['login', 'register'] %}
+    <nav class="navbar">
+        <a href="{{ url_for('index') }}" class="logo">
+            <span>🏆</span> Sports Society
+        </a>
+        <div class="nav-links">
+            <a href="{{ url_for('index') }}" class="{{ 'active' if request.endpoint == 'index' }}">Dashboard</a>
+            <a href="{{ url_for('sports') }}" class="{{ 'active' if request.endpoint in ['sports','add_sport'] }}">Sports</a>
+            <a href="{{ url_for('teams') }}" class="{{ 'active' if request.endpoint in ['teams','team_detail','create_team'] }}">Teams</a>
+            {% if session.get('admin_id') %}
+            <a href="{{ url_for('payments') }}" class="{{ 'active' if request.endpoint in ['payments','add_payment'] }}">Payments</a>
+            {% endif %}
+            <a href="{{ url_for('events') }}" class="{{ 'active' if request.endpoint in ['events','add_event','event_detail'] }}">Events</a>
+            <a href="{{ url_for('announcements') }}" class="{{ 'active' if request.endpoint in ['announcements','add_announcement'] }}">Announcements</a>
+        </div>
+        <div class="nav-right">
+            {% if session.get('admin_id') %}
+            <span class="role-badge-admin">Admin</span>
+            {% else %}
+            <span class="role-badge-user">User</span>
+            {% endif %}
+            <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
+        </div>
+    </nav>
+
+    {% if session.get('user_id') and not session.get('admin_id') %}
+    <div class="view-only-banner">
+        👁️ View-only mode is active. You can browse the dashboard but cannot make changes.
+    </div>
+    {% endif %}
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-messages">
+        {% for category, message in messages %}
+        <div class="flash {{ category }}" onclick="this.remove()">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <div class="container fade-in">
+        {{ self.content() }}
+    </div>
+    {% else %}
+    <div class="container fade-in">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-messages">
+            {% for category, message in messages %}
+            <div class="flash {{ category }}" onclick="this.remove()">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+        {{ self.content() }}
+    </div>
+    {% endif %}
+
+    <script>
+        setTimeout(() => {
+            document.querySelectorAll('.flash').forEach(el => {
+                el.style.transition = 'opacity 0.4s'; el.style.opacity = '0';
+                setTimeout(() => el.remove(), 400);
+            });
+        }, 4000);
+    </script>
+</body>
+</html>

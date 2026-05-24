@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Sports Society</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .register-card {
+            width: 380px;
+            max-width: 92%;
+        }
+        .register-card p { color: #cbd5e1; font-size: 0.92rem; margin-top: 0; }
+        .register-footer {
+            margin-top: 18px;
+            text-align: center;
+            color: #cbd5e1;
+            font-size: 0.9rem;
+        }
+        .register-footer a {
+            color: #38bdf8;
+            text-decoration: none;
+        }
+        .register-footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-page">
+        <div class="login-decor circle circle-1"></div>
+        <div class="login-decor circle circle-2"></div>
+        <div class="login-bg"></div>
+        <div class="login-overlay"></div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-messages login-flash">
+            {% for category, message in messages %}
+            <div class="flash {{ category }}" onclick="this.remove()">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <div class="login-card fade-in register-card">
+            <div class="login-logo">
+                <span class="logo-icon">📝</span>
+                <h1>Register</h1>
+                <p class="login-subtitle">Create your own account and join the sports society with your own secure password.</p>
+            </div>
+
+            <form method="POST" action="{{ url_for('register') }}">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" name="username" id="username" placeholder="Choose a username" required autofocus>
+                </div>
+                <div class="form-group">
+                    <label for="full_name">Full Name</label>
+                    <input type="text" name="full_name" id="full_name" placeholder="Your full name">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" name="password" id="password" placeholder="Create a password" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirm_password">Confirm Password</label>
+                    <input type="password" name="confirm_password" id="confirm_password" placeholder="Repeat your password" required>
+                </div>
+                <button type="submit" class="login-btn">Register →</button>
+            </form>
+
+            <div class="register-footer">
+                Already have an account? <a href="{{ url_for('login') }}">Sign in here</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        setTimeout(() => {
+            document.querySelectorAll('.flash').forEach(el => {
+                el.style.transition = 'opacity 0.4s'; el.style.opacity = '0';
+                setTimeout(() => el.remove(), 400);
+            });
+        }, 4000);
+    </script>
+</body>
+</html>

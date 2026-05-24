@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Sports Society</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .role-selector {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .role-btn {
+            flex: 1;
+            padding: 14px;
+            border: 2px solid rgba(255,255,255,.12);
+            background: rgba(255,255,255,.05);
+            color: var(--text);
+            border-radius: 14px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 700;
+            transition: all 0.25s;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+        .role-btn:hover {
+            border-color: rgba(56,189,248,.45);
+            color: #ffffff;
+            background: rgba(56,189,248,.18);
+        }
+        .role-btn.active-admin {
+            border-color: rgba(56,189,248,.7);
+            background: rgba(56,189,248,.18);
+            color: #ffffff;
+        }
+        .role-btn.active-user {
+            border-color: rgba(34,197,94,.7);
+            background: rgba(34,197,94,.18);
+            color: #ffffff;
+        }
+        .role-indicator {
+            font-size: 0.82rem;
+            margin-top: -8px;
+            color: var(--text-muted);
+        }
+        .login-panel {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 1.25rem;
+            padding: 3rem 3rem 2.5rem;
+        }
+        .login-visual {
+            position: relative;
+            min-height: 620px;
+            overflow: hidden;
+            background:#08101f;
+        }
+        .hero-image {
+            position: absolute;
+            inset: 0;
+            background-image: url('{{ url_for('static', filename='images/login-hero.jpg') }}');
+            background-size: cover;
+            background-position: center;
+            filter: brightness(.62);
+            transform: scale(1);
+            transition: transform .5s ease;
+        }
+        .login-visual:hover .hero-image {
+            transform: scale(1.04);
+        }
+        .hero-image::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg,rgba(3,9,20,.08),rgba(0,0,0,.7));
+        }
+        .hero-copy {
+            position: absolute;
+            bottom: 2.5rem;
+            left: 2.5rem;
+            right: 2.5rem;
+            z-index: 2;
+            color: var(--text);
+            max-width: 320px;
+        }
+        .hero-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            margin-bottom: 1rem;
+            padding: .65rem 1rem;
+            border-radius: 999px;
+            border: 1px solid rgba(255,255,255,.12);
+            background: rgba(255,255,255,.04);
+            color: var(--blue);
+            font-size: 0.78rem;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+        .hero-copy h2 {
+            margin: 0;
+            font-size: 2.4rem;
+            line-height: 1.05;
+            color: var(--text-primary);
+            letter-spacing: -.02em;
+        }
+        .hero-copy p {
+            margin: 1rem 0 0;
+            color: var(--text-muted);
+            line-height: 1.8;
+            font-size: 0.98rem;
+        }
+        .login-footer-text {
+            text-align: center;
+            margin-top: 10px;
+            color: var(--text-muted);
+        }
+        .login-footer-text a {
+            color: var(--blue);
+            text-decoration: none;
+        }
+        @media (max-width: 980px) {
+            .login-card {grid-template-columns: 1fr;}
+            .login-visual {min-height: 320px;}
+            .login-panel {padding: 2.5rem 2rem 2rem;}
+            .hero-copy {position: static; padding: 1.5rem 2rem 2rem;}
+        }
+    </style>
+</head>
+<body>
+    <div class="login-page">
+        <div class="login-decor circle circle-1"></div>
+        <div class="login-decor circle circle-2"></div>
+        <div class="login-bg"></div>
+        <div class="login-overlay"></div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-messages login-flash">
+            {% for category, message in messages %}
+            <div class="flash {{ category }}" onclick="this.remove()">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <div class="login-card fade-in">
+            <div class="login-panel">
+                <div class="login-logo">
+                    <span class="logo-icon">🏆</span>
+                    <h1>Sports Society</h1>
+                    <p class="login-subtitle">Sign in to access teams, events, payments and society announcements.</p>
+                    <p id="portal-label">Admin Portal — Sign in to continue</p>
+                </div>
+
+                <div class="role-selector">
+                    <div class="role-btn active-admin" id="btn-admin" onclick="selectRole('admin')">
+                        🔐 Admin
+                    </div>
+                    <div class="role-btn" id="btn-user" onclick="selectRole('user')">
+                        👤 User
+                    </div>
+                </div>
+                <p class="role-indicator" id="role-hint">Full access — manage everything</p>
+
+                <form method="POST" action="{{ url_for('login') }}">
+                    <input type="hidden" name="role" id="role-input" value="admin">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" name="username" id="username" placeholder="Enter your username" required autofocus>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" name="password" id="password" placeholder="Enter your password" required>
+                    </div>
+                    <button type="submit" class="login-btn" id="login-btn">Sign In →</button>
+                </form>
+                <p class="login-footer-text">
+                    New user? <a href="{{ url_for('register') }}">Create your own account</a>
+                </p>
+            </div>
+
+            <div class="login-visual">
+                <div class="hero-image"></div>
+                <div class="hero-copy">
+                    <span class="hero-tag">NextPlay</span>
+                    <h2>Experience elite sports access in one secure portal.</h2>
+                    <p>Manage your club, teams, events and payments with a bold black interface built for fast action.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function selectRole(role) {
+            document.getElementById('role-input').value = role;
+            const btnAdmin = document.getElementById('btn-admin');
+            const btnUser  = document.getElementById('btn-user');
+            const hint     = document.getElementById('role-hint');
+            const label    = document.getElementById('portal-label');
+            const loginBtn = document.getElementById('login-btn');
+
+            if (role === 'admin') {
+                btnAdmin.className = 'role-btn active-admin';
+                btnUser.className  = 'role-btn';
+                hint.textContent   = 'Full access — manage everything';
+                label.textContent  = 'Admin Portal — Sign in to continue';
+                loginBtn.style.background = '';
+            } else {
+                btnAdmin.className = 'role-btn';
+                btnUser.className  = 'role-btn active-user';
+                hint.textContent   = 'View-only access — browse announcements & events';
+                label.textContent  = 'User Portal — Sign in to continue';
+                loginBtn.style.background = 'linear-gradient(135deg,#16a34a,#15803d)';
+            }
+        }
+
+        setTimeout(() => {
+            document.querySelectorAll('.flash').forEach(el => {
+                el.style.transition = 'opacity 0.4s'; el.style.opacity = '0';
+                setTimeout(() => el.remove(), 400);
+            });
+        }, 4000);
+    </script>
+</body>
+</html>

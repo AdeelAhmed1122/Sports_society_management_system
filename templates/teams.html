@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}Teams - Sports Society{% endblock %}
+{% block content %}
+<div class="section-header">
+    <div class="page-header">
+        <h1>Teams</h1>
+        <p>Manage all your teams across sports</p>
+    </div>
+    {% if is_admin %}
+    <a href="{{ url_for('create_team') }}" class="btn btn-primary">+ Create Team</a>
+    {% endif %}
+</div>
+
+{% for sport in sports %}
+<div class="sport-section fade-in">
+    <div class="section-title">
+        <span class="dot" style="background: {{ sport.color }};"></span>
+        {{ sport.icon }} {{ sport.name }}
+        <span style="color:var(--text-muted);font-weight:400;font-size:.85rem;margin-left:4px;">
+            ({{ teams_by_sport[sport.id]|length }} teams)
+        </span>
+    </div>
+
+    {% if teams_by_sport[sport.id] %}
+    <div class="teams-grid">
+        {% for team in teams_by_sport[sport.id] %}
+        <a href="{{ url_for('team_detail', id=team.id) }}" class="team-card">
+            <div class="team-name">{{ team.name }}</div>
+            <div class="team-meta">{{ sport.name }} · Created {{ team.created_at.strftime('%Y-%m-%d') if team.created_at else 'Recently' }}</div>
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill" style="width:{{ (team.player_count / team.max_players * 100)|int }}%;background:{{ sport.color }};"></div>
+            </div>
+            <div class="progress-label">
+                <span>{{ team.player_count }} / {{ team.max_players }} players</span>
+                <span>{% if team.player_count >= team.max_players %}Full{% else %}{{ team.max_players - team.player_count }} slots open{% endif %}</span>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <span class="empty-icon">{{ sport.icon }}</span>
+        No teams yet for {{ sport.name }}
+    </div>
+    {% endif %}
+</div>
+{% endfor %}
+{% endblock %}

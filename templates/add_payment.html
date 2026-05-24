@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block title %}Record Payment - Sports Society{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Record Payment</h1>
+    <p>Add a new payment transaction</p>
+</div>
+
+<div class="form-card fade-in">
+    <form method="POST" action="{{ url_for('add_payment') }}">
+        <div class="form-group">
+            <label for="player-name">Player Name *</label>
+            <input type="text" name="player_name" id="player-name" placeholder="e.g. Ahmed Khan" required>
+        </div>
+        <div class="form-group">
+            <label for="team-select">Team *</label>
+            <select name="team_id" id="team-select" required>
+                <option value="" disabled selected>Choose a team...</option>
+                {% for team in teams %}
+                <option value="{{ team.id }}">{{ team.icon }} {{ team.name }} ({{ team.sport_name }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="amount">Amount (Rs.) *</label>
+            <input type="number" name="amount" id="amount" placeholder="e.g. 500" required min="1" step="0.01">
+        </div>
+        <div class="form-group">
+            <label for="payment-type">Payment Type *</label>
+            <select name="payment_type" id="payment-type" required>
+                <option value="" disabled selected>Select type...</option>
+                <option value="Registration">Registration Fee</option>
+                <option value="Monthly">Monthly Dues</option>
+                <option value="Tournament">Tournament Fee</option>
+                <option value="Equipment">Equipment Cost</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="status">Status</label>
+            <select name="status" id="status">
+                <option value="Completed">Completed</option>
+                <option value="Pending">Pending</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="description">Description (Optional)</label>
+            <textarea name="description" id="description" placeholder="Payment notes..."></textarea>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:1.5rem;">
+            <button type="submit" class="btn btn-primary" id="submit-payment-btn">Record Payment</button>
+            <a href="{{ url_for('payments') }}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

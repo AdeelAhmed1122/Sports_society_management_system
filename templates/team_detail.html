@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+{% block title %}{{ team.name }} - Sports Society{% endblock %}
+{% block content %}
+<div style="margin-bottom:1rem;">
+    <a href="{{ url_for('teams') }}" class="btn btn-secondary btn-sm">← Back to Teams</a>
+</div>
+
+<div class="team-header fade-in">
+    <div class="team-header-left">
+        <div class="team-icon">{{ team.icon }}</div>
+        <div>
+            <div class="team-title">{{ team.name }}</div>
+            <div class="team-subtitle">{{ team.sport_name }} · Max {{ team.max_players }} players</div>
+        </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;">
+        <span class="capacity-badge {{ 'full' if player_count >= team.max_players else 'available' }}">
+            {{ player_count }} / {{ team.max_players }} Players
+        </span>
+        {% if is_admin %}
+        <form method="POST" action="{{ url_for('delete_team', id=team.id) }}"
+              onsubmit="return confirm('Delete this team and all its players?');" style="margin:0;">
+            <button type="submit" class="btn btn-danger btn-sm">🗑 Delete Team</button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Progress bar -->
+<div style="margin-bottom:1.5rem;">
+    <div class="progress-bar-bg" style="height:10px;">
+        <div class="progress-bar-fill" style="width:{{ (player_count / team.max_players * 100)|int }}%;background:{{ team.color }};"></div>
+    </div>
+</div>
+
+{% if is_admin %}
+<!-- Add Player Form -->
+{% if player_count < team.max_players %}
+<div class="add-player-form fade-in">
+    <h3>Add Player</h3>
+    <form method="POST" action="{{ url_for('add_player', id=team.id) }}">
+        <div class="form-row">
+            <input type="text" name="name" placeholder="Player Name" required id="player-name-input">
+            <input type="text" name="position" placeholder="Position (optional)" id="player-position-input">
+            <button type="submit" class="btn btn-primary" id="add-player-btn">+ Add Player</button>
+        </div>
+    </form>
+    <p style="color:var(--text-muted);font-size:.8rem;margin-top:8px;">
+        {{ team.max_players - player_count }} slot{{ 's' if (team.max_players - player_count) != 1 }} remaining
+    </p>
+</div>
+{% else %}
+<div class="add-player-form fade-in" style="border-color:rgba(239,68,68,.2);">
+    <h3 style="color:var(--red);">⚠ Team is Full</h3>
+    <p style="color:var(--text-secondary);font-size:.9rem;">
+        This {{ team.sport_name }} team has reached its maximum of {{ team.max_players }} players.
+    </p>
+</div>
+{% endif %}
+{% endif %}
+
+<!-- Players List -->
+<div class="section-title" style="margin-top:1.5rem;">
+    <span class="dot" style="background:{{ team.color }};"></span>
+    Players ({{ player_count }})
+</div>
+
+{% if players %}
+<div class="players-list">
+    {% for player in players %}
+    <div class="player-row fade-in stagger-{{ loop.index }}">
+        <div class="player-info">
+            <span class="player-number">#{{ loop.index }}</span>
+            <div class="player-avatar" style="background:{{ team.color }};">{{ player.name[0]|upper }}</div>
+            <div>
+                <div class="player-name">{{ player.name }}</div>
+                {% if player.position %}<div class="player-position">{{ player.position }}</div>{% endif %}
+            </div>
+        </div>
+        {% if is_admin %}
+        <form method="POST" action="{{ url_for('delete_player', id=player.id) }}"
+              onsubmit="return confirm('Remove {{ player.name }} from the team?');">
+            <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+        </form>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+    <span class="empty-icon">👤</span>
+    No players yet.{% if is_admin %} Add your first player above!{% endif %}
+</div>
+{% endif %}
+
+<!-- Team Payments -->
+{% if team_payments %}
+<div class="section-title" style="margin-top:2rem;">
+    <span class="dot" style="background:var(--amber);"></span>
+    Team Payments ({{ team_payments|length }})
+</div>
+<table class="payments-table">
+    <thead><tr><th>Player</th><th>Amount</th><th>Type</th><th>Status</th></tr></thead>
+    <tbody>
+    {% for pay in team_payments %}
+    <tr>
+        <td>{{ pay.player_name }}</td>
+        <td><strong>Rs.{{ "%.0f"|format(pay.amount) }}</strong></td>
+        <td><span class="type-badge">{{ pay.payment_type }}</span></td>
+        <td><span class="status-badge {{ pay.status|lower }}">{{ pay.status }}</span></td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+
+{% endblock %}

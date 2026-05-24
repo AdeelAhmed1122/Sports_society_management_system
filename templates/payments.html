@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block title %}Payments - Sports Society{% endblock %}
+{% block content %}
+<div class="section-header">
+    <div class="page-header">
+        <h1>Payments</h1>
+        <p>Track all financial transactions</p>
+    </div>
+    {% if is_admin %}
+    <a href="{{ url_for('add_payment') }}" class="btn btn-primary">+ Record Payment</a>
+    {% endif %}
+</div>
+
+<!-- Payment Stats -->
+<div class="stats-row">
+    <div class="stat-card revenue fade-in stagger-1">
+        <div class="stat-icon">💰</div>
+        <div class="stat-value">Rs.{{ "%.0f"|format(total_revenue) }}</div>
+        <div class="stat-label">Total Revenue</div>
+    </div>
+    <div class="stat-card pending fade-in stagger-2">
+        <div class="stat-icon">⏳</div>
+        <div class="stat-value">Rs.{{ "%.0f"|format(pending_amount) }}</div>
+        <div class="stat-label">Pending Amount</div>
+    </div>
+    <div class="stat-card fade-in stagger-3">
+        <div class="stat-icon">📋</div>
+        <div class="stat-value">{{ total_count }}</div>
+        <div class="stat-label">Total Transactions</div>
+    </div>
+</div>
+
+<!-- Payments Table -->
+{% if payments %}
+<table class="payments-table fade-in">
+    <thead>
+        <tr>
+            <th>#</th><th>Player</th><th>Team</th><th>Sport</th>
+            <th>Amount</th><th>Type</th><th>Status</th><th>Date</th><th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for pay in payments %}
+        <tr>
+            <td style="color:var(--text-muted);">{{ loop.index }}</td>
+            <td><strong>{{ pay.player_name }}</strong></td>
+            <td>{{ pay.team_name }}</td>
+            <td>{{ pay.icon }} {{ pay.sport_name }}</td>
+            <td><strong>Rs.{{ "%.2f"|format(pay.amount) }}</strong></td>
+            <td><span class="type-badge">{{ pay.payment_type }}</span></td>
+            <td><span class="status-badge {{ pay.status|lower }}">{{ pay.status }}</span></td>
+            <td style="color:var(--text-secondary);font-size:.85rem;">{{ pay.payment_date.strftime('%Y-%m-%d') if pay.payment_date else '-' }}</td>
+            <td>
+                <div style="display:flex;gap:6px;">
+                    <form method="POST" action="{{ url_for('toggle_payment_status', id=pay.id) }}" style="margin:0;">
+                        <button type="submit" class="btn btn-sm {{ 'btn-success' if pay.status == 'Pending' else 'btn-secondary' }}"
+                                title="Toggle status">{{ '✓' if pay.status == 'Pending' else '↺' }}</button>
+                    </form>
+                    <form method="POST" action="{{ url_for('delete_payment', id=pay.id) }}"
+                          onsubmit="return confirm('Delete this payment record?');" style="margin:0;">
+                        <button type="submit" class="btn btn-danger btn-sm">🗑</button>
+                    </form>
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<div class="empty-state">
+    <span class="empty-icon">💳</span>
+    No payments recorded yet. Click "Record Payment" to add one.
+</div>
+{% endif %}
+{% endblock %}

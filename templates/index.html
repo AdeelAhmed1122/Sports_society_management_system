@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard - Sports Society{% endblock %}
+{% block content %}
+
+<div class="dashboard-hero fade-in">
+    <div class="hero-bg"></div>
+    <div class="hero-overlay"></div>
+    <div class="hero-ronaldo">
+        <img src="{{ url_for('static', filename='ronaldo_hero.png') }}" alt="Ronaldo Hero">
+    </div>
+    <div class="hero-particles">
+        <span style="left:10%;top:20%"></span><span></span><span></span><span></span><span></span>
+        <span style="left:50%;top:10%"></span><span style="left:70%;top:80%"></span><span style="left:90%;top:40%"></span>
+    </div>
+    <div class="hero-content">
+        <div class="hero-badge">🏆 Sports Management System</div>
+        <h1>Welcome to <span class="highlight">Sports Society</span></h1>
+        <p>Manage your clubs, events, teams, payments and announcements from one beautiful dashboard.</p>
+        <div class="hero-actions">
+            <a href="{{ url_for('add_event') }}" class="btn btn-primary">Schedule Event</a>
+            <a href="{{ url_for('create_team') }}" class="btn btn-secondary">Create Team</a>
+        </div>
+    </div>
+    <div class="hero-glow"></div>
+</div>
+
+<div class="stats-row">
+    <div class="stat-card fade-in stagger-1">
+        <div class="stat-icon">🏅</div>
+        <div class="stat-value">{{ sports|length }}</div>
+        <div class="stat-label">Sports Available</div>
+    </div>
+    <div class="stat-card fade-in stagger-2">
+        <div class="stat-icon">👥</div>
+        <div class="stat-value">{{ total_teams }}</div>
+        <div class="stat-label">Total Teams</div>
+    </div>
+    <div class="stat-card fade-in stagger-3">
+        <div class="stat-icon">🧑‍🤝‍🧑</div>
+        <div class="stat-value">{{ total_players }}</div>
+        <div class="stat-label">Total Players</div>
+    </div>
+    <div class="stat-card revenue fade-in stagger-4">
+        <div class="stat-icon">💰</div>
+        <div class="stat-value">Rs.{{ "%.0f"|format(total_payments) }}</div>
+        <div class="stat-label">Total Revenue</div>
+    </div>
+</div>
+
+<div class="quick-actions fade-in">
+    <a href="{{ url_for('add_event') }}" class="quick-action-btn"><span class="qa-icon">📅</span> Schedule Event</a>
+    <a href="{{ url_for('create_team') }}" class="quick-action-btn"><span class="qa-icon">👥</span> Create Team</a>
+    <a href="{{ url_for('add_payment') }}" class="quick-action-btn"><span class="qa-icon">💳</span> Record Payment</a>
+    <a href="{{ url_for('add_announcement') }}" class="quick-action-btn"><span class="qa-icon">📢</span> New Announcement</a>
+    <a href="{{ url_for('add_sport') }}" class="quick-action-btn"><span class="qa-icon">🏅</span> Add Sport</a>
+</div>
+
+<div class="section-title">
+    <span class="dot" style="background: var(--blue);"></span>
+    Sports Categories
+    <a href="{{ url_for('sports') }}" class="btn btn-sm btn-secondary" style="margin-left:auto;">View All →</a>
+</div>
+<div class="sports-grid">
+    {% for sport in sports %}
+    <div class="sport-card fade-in stagger-{{ loop.index }}" style="--card-color: {{ sport.color }};">
+        <span class="sport-icon">{{ sport.icon }}</span>
+        <div class="sport-name">{{ sport.name }}</div>
+        <div class="sport-info">
+            <span>👥 {{ stats[sport.id].teams if stats[sport.id] else 0 }} Teams</span>
+            <span>🧑 {{ stats[sport.id].players if stats[sport.id] else 0 }} Players</span>
+        </div>
+        <div class="max-badge">Max {{ sport.max_players }} players per team</div>
+        <style>.sport-card:nth-child({{ loop.index }})::after { background: {{ sport.color }}; }</style>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="section-title" style="margin-top:2rem;">
+    <span class="dot" style="background: var(--cyan);"></span>
+    Upcoming Events
+    <a href="{{ url_for('events') }}" class="btn btn-sm btn-secondary" style="margin-left:auto;">View All →</a>
+</div>
+{% if upcoming_events %}
+<div class="events-grid" style="margin-bottom:2rem;">
+    {% for e in upcoming_events %}
+    <a href="{{ url_for('event_detail', id=e.id) }}" class="event-card fade-in stagger-{{ loop.index }}" style="--ev-color: {{ e.sport_color or 'var(--blue)' }}">
+        <div class="event-card-top">
+            <span class="event-type-badge {{ e.event_type|lower }}">{{ e.event_type }}</span>
+            <span class="event-status-badge {{ e.status|lower }}">{{ e.status }}</span>
+        </div>
+        <h3 class="event-title">{{ e.title }}</h3>
+        {% if e.sport_name %}<div class="event-sport">{{ e.sport_icon }} {{ e.sport_name }}</div>{% endif %}
+        {% if e.home_team_name %}
+        <div class="event-matchup">
+            <span class="team-name-tag">{{ e.home_team_name }}</span>
+            <span class="vs-badge">VS</span>
+            <span class="team-name-tag">{{ e.away_team_name or 'TBD' }}</span>
+        </div>
+        {% endif %}
+        <div class="event-meta">
+            <span>📅 {{ e.event_date.strftime('%b %d, %Y') if e.event_date else '' }}</span>
+            {% if e.venue %}<span>📍 {{ e.venue }}</span>{% endif %}
+        </div>
+    </a>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state" style="margin-bottom:2rem;"><span class="empty-icon">📅</span>No upcoming events</div>
+{% endif %}
+
+<div class="two-col">
+    <div>
+        <div class="section-title">
+            <span class="dot" style="background: var(--green);"></span>
+            Recent Players
+        </div>
+        {% if recent_players %}
+        <div class="activity-list">
+            {% for p in recent_players %}
+            <div class="activity-item fade-in">
+                <span class="activity-icon">⚽</span>
+                <span class="activity-text"><strong>{{ p.player_name }}</strong> joined <strong>{{ p.team_name }}</strong> ({{ p.sport_name }})</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state"><span class="empty-icon">👤</span>No recent player activity</div>
+        {% endif %}
+    </div>
+    <div>
+        <div class="section-title">
+            <span class="dot" style="background: var(--amber);"></span>
+            Recent Payments
+        </div>
+        {% if recent_payments %}
+        <div class="activity-list">
+            {% for pay in recent_payments %}
+            <div class="activity-item fade-in">
+                <span class="activity-icon">💳</span>
+                <span class="activity-text">
+                    <strong>{{ pay.player_name }}</strong> — Rs.{{ "%.0f"|format(pay.amount) }}
+                    <span class="status-badge {{ pay.status|lower }}">{{ pay.status }}</span>
+                </span>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state"><span class="empty-icon">💰</span>No recent payments</div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="section-title" style="margin-top:2rem;">
+    <span class="dot" style="background: var(--red);"></span>
+    Latest Announcements
+    <a href="{{ url_for('announcements') }}" class="btn btn-sm btn-secondary" style="margin-left:auto;">View All →</a>
+</div>
+{% if latest_announcements %}
+<div class="announcements-list fade-in" style="margin-bottom:2rem;">
+    {% for ann in latest_announcements %}
+    <div class="announcement-card fade-in stagger-{{ loop.index }} priority-{{ ann.priority|lower }}">
+        <div class="announcement-header">
+            <div class="announcement-left">
+                {% if ann.is_pinned %}<span class="pin-icon">📌</span>{% endif %}
+                <span class="priority-badge {{ ann.priority|lower }}">
+                    {% if ann.priority == 'Urgent' %}🔴{% elif ann.priority == 'Important' %}🟡{% else %}🔵{% endif %}
+                    {{ ann.priority }}
+                </span>
+                <span class="category-badge">{{ ann.category }}</span>
+            </div>
+            <span style="color:var(--text-muted);font-size:.8rem;">{{ ann.created_at.strftime('%b %d') if ann.created_at else '' }}</span>
+        </div>
+        <h3 class="announcement-title">{{ ann.title }}</h3>
+        <p class="announcement-content" style="-webkit-line-clamp:2;">{{ ann.content }}</p>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state"><span class="empty-icon">📢</span>No announcements yet</div>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}Announcements - Sports Society{% endblock %}
+{% block content %}
+<div class="section-header">
+    <div class="page-header">
+        <h1>Announcements</h1>
+        <p>Notice board, alerts, and important updates</p>
+    </div>
+    {% if is_admin %}
+    <a href="{{ url_for('add_announcement') }}" class="btn btn-primary">+ New Announcement</a>
+    {% endif %}
+</div>
+
+{% if announcements %}
+<div class="announcements-list fade-in">
+    {% for ann in announcements %}
+    <div class="announcement-card fade-in stagger-{{ loop.index }} priority-{{ ann.priority|lower }}">
+        <div class="announcement-header">
+            <div class="announcement-left">
+                {% if ann.is_pinned %}<span class="pin-icon" title="Pinned">📌</span>{% endif %}
+                <span class="priority-badge {{ ann.priority|lower }}">
+                    {% if ann.priority == 'Urgent' %}🔴{% elif ann.priority == 'Important' %}🟡{% else %}🔵{% endif %}
+                    {{ ann.priority }}
+                </span>
+                <span class="category-badge">{{ ann.category }}</span>
+            </div>
+            {% if is_admin %}
+            <div class="announcement-actions">
+                <form method="POST" action="{{ url_for('toggle_pin', id=ann.id) }}" style="margin:0;">
+                    <button type="submit" class="btn btn-sm btn-secondary" title="{{ 'Unpin' if ann.is_pinned else 'Pin' }}">
+                        {{ '📌' if not ann.is_pinned else '✖' }}
+                    </button>
+                </form>
+                <form method="POST" action="{{ url_for('delete_announcement', id=ann.id) }}" onsubmit="return confirm('Delete this announcement?');" style="margin:0;">
+                    <button type="submit" class="btn btn-danger btn-sm">🗑</button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+        <h3 class="announcement-title">{{ ann.title }}</h3>
+        <p class="announcement-content">{{ ann.content }}</p>
+        <div class="announcement-footer">
+            <span>👤 {{ ann.created_by }}</span>
+            <span>📅 {{ ann.created_at.strftime('%b %d, %Y at %I:%M %p') if ann.created_at else '' }}</span>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+    <span class="empty-icon">📢</span>
+    No announcements yet.{% if is_admin %} Create one to get started!{% endif %}
+</div>
+{% endif %}
+{% endblock %}

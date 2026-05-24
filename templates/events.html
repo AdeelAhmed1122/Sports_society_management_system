@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+{% block title %}Events & Tournaments - Sports Society{% endblock %}
+{% block content %}
+<div class="section-header">
+    <div class="page-header">
+        <h1>Events & Tournaments</h1>
+        <p>Schedule matches, manage tournaments, and track results</p>
+    </div>
+    {% if is_admin %}
+    <a href="{{ url_for('add_event') }}" class="btn btn-primary">+ Schedule Event</a>
+    {% endif %}
+</div>
+
+<!-- Stats -->
+<div class="stats-row">
+    <div class="stat-card fade-in stagger-1">
+        <div class="stat-icon">📅</div>
+        <div class="stat-value">{{ upcoming|length }}</div>
+        <div class="stat-label">Upcoming Events</div>
+    </div>
+    <div class="stat-card fade-in stagger-2" style="border-left:3px solid var(--red);">
+        <div class="stat-icon">🔴</div>
+        <div class="stat-value">{{ live|length }}</div>
+        <div class="stat-label">Live Now</div>
+    </div>
+    <div class="stat-card fade-in stagger-3">
+        <div class="stat-icon">✅</div>
+        <div class="stat-value">{{ completed|length }}</div>
+        <div class="stat-label">Completed</div>
+    </div>
+    <div class="stat-card fade-in stagger-4">
+        <div class="stat-icon">🏆</div>
+        <div class="stat-value">{{ tournaments|length }}</div>
+        <div class="stat-label">Tournaments</div>
+    </div>
+</div>
+
+<!-- Tab navigation -->
+<div class="event-tabs">
+    <button class="event-tab active" onclick="showTab('upcoming-tab')">📅 Upcoming</button>
+    <button class="event-tab" onclick="showTab('completed-tab')">✅ Results</button>
+    <button class="event-tab" onclick="showTab('tournaments-tab')">🏆 Tournaments</button>
+    <button class="event-tab" onclick="showTab('all-tab')">📋 All Events</button>
+</div>
+
+<!-- Upcoming Tab -->
+<div id="upcoming-tab" class="tab-content active">
+    {% if upcoming %}
+    <div class="events-grid">
+        {% for e in upcoming %}
+        <a href="{{ url_for('event_detail', id=e.id) }}" class="event-card fade-in stagger-{{ loop.index }}" style="--ev-color: {{ e.sport_color or 'var(--blue)' }}">
+            <div class="event-card-top">
+                <span class="event-type-badge {{ e.event_type|lower }}">{{ e.event_type }}</span>
+                <span class="event-status-badge {{ e.status|lower }}">{{ e.status }}</span>
+            </div>
+            <h3 class="event-title">{{ e.title }}</h3>
+            {% if e.sport_name %}
+            <div class="event-sport">{{ e.sport_icon }} {{ e.sport_name }}</div>
+            {% endif %}
+            {% if e.home_team_name %}
+            <div class="event-matchup">
+                <span class="team-name-tag">{{ e.home_team_name }}</span>
+                <span class="vs-badge">VS</span>
+                <span class="team-name-tag">{{ e.away_team_name or 'TBD' }}</span>
+            </div>
+            {% endif %}
+            <div class="event-meta">
+                <span>📅 {{ e.event_date.strftime('%b %d, %Y') if e.event_date else '' }}</span>
+                {% if e.event_time %}<span>🕐 {{ e.event_time|format_time }}</span>{% endif %}
+                {% if e.venue %}<span>📍 {{ e.venue }}</span>{% endif %}
+            </div>
+            {% if e.bracket_round %}
+            <div class="bracket-badge">🏅 {{ e.bracket_round }}</div>
+            {% endif %}
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state"><span class="empty-icon">📅</span>No upcoming events.{% if is_admin %} Schedule one!{% endif %}</div>
+    {% endif %}
+</div>
+
+<!-- Results Tab -->
+<div id="completed-tab" class="tab-content">
+    {% if completed %}
+    <div class="events-grid">
+        {% for e in completed %}
+        <a href="{{ url_for('event_detail', id=e.id) }}" class="event-card fade-in completed-card">
+            <div class="event-card-top">
+                <span class="event-type-badge {{ e.event_type|lower }}">{{ e.event_type }}</span>
+                <span class="event-status-badge completed">Completed</span>
+            </div>
+            <h3 class="event-title">{{ e.title }}</h3>
+            {% if e.home_team_name and e.score_home is not none %}
+            <div class="score-display">
+                <div class="score-team {% if e.score_home > e.score_away %}winner{% endif %}">
+                    <span class="score-team-name">{{ e.home_team_name }}</span>
+                    <span class="score-value">{{ e.score_home }}</span>
+                </div>
+                <span class="score-separator">—</span>
+                <div class="score-team {% if e.score_away > e.score_home %}winner{% endif %}">
+                    <span class="score-value">{{ e.score_away }}</span>
+                    <span class="score-team-name">{{ e.away_team_name or 'TBD' }}</span>
+                </div>
+            </div>
+            {% endif %}
+            <div class="event-meta">
+                <span>📅 {{ e.event_date.strftime('%b %d, %Y') if e.event_date else '' }}</span>
+                {% if e.venue %}<span>📍 {{ e.venue }}</span>{% endif %}
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state"><span class="empty-icon">✅</span>No completed events yet.</div>
+    {% endif %}
+</div>
+
+<!-- Tournaments Tab -->
+<div id="tournaments-tab" class="tab-content">
+    {% if tournaments %}
+    <div class="section-title"><span class="dot" style="background:var(--amber)"></span>Tournament Bracket</div>
+    <div class="bracket-container">
+        {% for e in tournaments %}
+        <div class="bracket-card fade-in {{ e.status|lower }}">
+            <div class="bracket-round-label">{{ e.bracket_round or 'Match' }}</div>
+            <div class="bracket-matchup">
+                <div class="bracket-team {% if e.status == 'Completed' and e.score_home is not none and e.score_home > e.score_away %}bracket-winner{% endif %}">
+                    {{ e.home_team_name or 'TBD' }}
+                    {% if e.score_home is not none %}<span class="bracket-score">{{ e.score_home }}</span>{% endif %}
+                </div>
+                <div class="bracket-vs">VS</div>
+                <div class="bracket-team {% if e.status == 'Completed' and e.score_away is not none and e.score_away > e.score_home %}bracket-winner{% endif %}">
+                    {{ e.away_team_name or 'TBD' }}
+                    {% if e.score_away is not none %}<span class="bracket-score">{{ e.score_away }}</span>{% endif %}
+                </div>
+            </div>
+            <div class="event-meta">
+                <span>📅 {{ e.event_date.strftime('%b %d, %Y') if e.event_date else '' }}</span>
+                <span class="event-status-badge {{ e.status|lower }}">{{ e.status }}</span>
+            </div>
+            <a href="{{ url_for('event_detail', id=e.id) }}" class="btn btn-sm btn-secondary" style="margin-top:8px;">View Details</a>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state"><span class="empty-icon">🏆</span>No tournaments scheduled.</div>
+    {% endif %}
+</div>
+
+<!-- All Events Tab -->
+<div id="all-tab" class="tab-content">
+    {% if all_events %}
+    <table class="payments-table fade-in">
+        <thead>
+            <tr><th>#</th><th>Event</th><th>Type</th><th>Sport</th><th>Date</th><th>Venue</th><th>Status</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+            {% for e in all_events %}
+            <tr>
+                <td style="color:var(--text-muted);">{{ loop.index }}</td>
+                <td><a href="{{ url_for('event_detail', id=e.id) }}" style="color:var(--text-primary);text-decoration:none;font-weight:600;">{{ e.title }}</a></td>
+                <td><span class="event-type-badge {{ e.event_type|lower }}">{{ e.event_type }}</span></td>
+                <td>{{ e.sport_icon or '' }} {{ e.sport_name or '—' }}</td>
+                <td style="color:var(--text-secondary);font-size:.85rem;">{{ e.event_date.strftime('%b %d, %Y') if e.event_date else '—' }}</td>
+                <td style="color:var(--text-secondary);">{{ e.venue or '—' }}</td>
+                <td><span class="event-status-badge {{ e.status|lower }}">{{ e.status }}</span></td>
+                <td>
+                    <div style="display:flex;gap:6px;">
+                        <a href="{{ url_for('event_detail', id=e.id) }}" class="btn btn-sm btn-secondary">👁</a>
+                        {% if is_admin %}
+                        <form method="POST" action="{{ url_for('delete_event', id=e.id) }}" onsubmit="return confirm('Delete this event?');" style="margin:0;">
+                            <button type="submit" class="btn btn-danger btn-sm">🗑</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state"><span class="empty-icon">📋</span>No events found.</div>
+    {% endif %}
+</div>
+
+<script>
+function showTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.event-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(tabId).classList.add('active');
+    event.target.classList.add('active');
+}
+</script>
+{% endblock %}

@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% block title %}Schedule Event - Sports Society{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Schedule Event</h1>
+    <p>Create a new match, tournament, or event</p>
+</div>
+
+<div class="form-card fade-in">
+    <form method="POST" action="{{ url_for('add_event') }}">
+        <div class="form-group">
+            <label>Event Title *</label>
+            <input type="text" name="title" required placeholder="e.g. Cricket League Final">
+        </div>
+        <div class="form-row" style="margin-bottom:1.2rem;">
+            <div class="form-group" style="flex:1;margin-bottom:0;">
+                <label>Event Type</label>
+                <select name="event_type">
+                    <option value="Match">Match</option>
+                    <option value="Tournament">Tournament</option>
+                    <option value="Practice">Practice</option>
+                    <option value="Meeting">Meeting</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="form-group" style="flex:1;margin-bottom:0;">
+                <label>Sport</label>
+                <select name="sport_id">
+                    <option value="">— Select Sport (optional) —</option>
+                    {% for s in sports %}
+                    <option value="{{ s.id }}">{{ s.icon }} {{ s.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="form-row" style="margin-bottom:1.2rem;">
+            <div class="form-group" style="flex:1;margin-bottom:0;">
+                <label>Home Team</label>
+                <select name="team_home_id">
+                    <option value="">— Select Team (optional) —</option>
+                    {% for t in teams %}
+                    <option value="{{ t.id }}">{{ t.icon }} {{ t.name }} ({{ t.sport_name }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group" style="flex:1;margin-bottom:0;">
+                <label>Away Team</label>
+                <select name="team_away_id">
+                    <option value="">— Select Team (optional) —</option>
+                    {% for t in teams %}
+                    <option value="{{ t.id }}">{{ t.icon }} {{ t.name }} ({{ t.sport_name }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="form-row" style="margin-bottom:1.2rem;">
+            <div class="form-group" style="flex:1;margin-bottom:0;">
+                <label>Date *</label>
+                <input type="date" name="event_date" required>
+            </div>
+            <div class="form-group" style="flex:1;margin-bottom:0;">
+                <label>Time</label>
+                <input type="time" name="event_time">
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Venue</label>
+            <input type="text" name="venue" placeholder="e.g. University Ground">
+        </div>
+        <div class="form-group">
+            <label>Tournament Round</label>
+            <input type="text" name="bracket_round" placeholder="e.g. Semi-Final, Quarter-Final, Final">
+            <div class="form-hint">Leave blank for non-tournament events</div>
+        </div>
+        <div class="form-group">
+            <label>Description</label>
+            <textarea name="description" placeholder="Event details..."></textarea>
+        </div>
+        <div style="display:flex;gap:10px;">
+            <button type="submit" class="btn btn-primary">📅 Schedule Event</button>
+            <a href="{{ url_for('events') }}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
